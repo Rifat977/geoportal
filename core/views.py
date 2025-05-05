@@ -33,3 +33,33 @@ class CountryViewSet(viewsets.ModelViewSet):
         results = self.queryset.filter(name_common__icontains=query)
         serializer = self.get_serializer(results, many=True)
         return Response(serializer.data)
+
+
+
+from django.core.paginator import Paginator
+from django.shortcuts import render, get_object_or_404
+from .models import Country
+
+def country_list_view(request):
+    q = request.GET.get('q', '')
+    countries = Country.objects.filter(name_common__icontains=q) if q else Country.objects.all()
+
+    paginator = Paginator(countries, 20) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'country_list.html', {
+        'page_obj': page_obj,
+        'q': q
+    })
+
+
+def country_detail_view(request, pk):
+    country = get_object_or_404(Country, pk=pk)
+    same_region = Country.objects.filter(region=country.region).exclude(pk=pk)
+    same_language = Country.objects.filter(languages__has_any_keys=country.languages.keys()).exclude(pk=pk)
+    return render(request, 'country_detail.html', {
+        'country': country,
+        'same_region': same_region,
+        'same_language': same_language
+    })
