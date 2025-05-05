@@ -5,6 +5,10 @@ from .models import Country
 from .serializers import CountrySerializer
 from rest_framework import status
 
+from django.contrib.auth.decorators import login_required
+
+
+
 
 class CountryViewSet(viewsets.ModelViewSet):
     queryset = Country.objects.all()
@@ -40,6 +44,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404
 from .models import Country
 
+@login_required
 def country_list_view(request):
     q = request.GET.get('q', '')
     countries = Country.objects.filter(name_common__icontains=q) if q else Country.objects.all()
